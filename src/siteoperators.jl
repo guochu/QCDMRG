@@ -1,5 +1,5 @@
 function _spinless_operators()
-	p = Hamiltonians.spin_half_matrices()
+	p = GeneralHamiltonians.spin_half_matrices()
 	p = Dict(k=>convert(AbelianMatrix, v) for (k, v) in p)
 	sp, sm, z = p["+"], p["-"], p["z"]
 	I2 = one(z)

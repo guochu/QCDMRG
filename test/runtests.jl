@@ -1,6 +1,6 @@
-push!(LOAD_PATH, dirname(dirname(Base.@__DIR__)) * "/SphericalTensors/src")
 push!(LOAD_PATH, dirname(dirname(Base.@__DIR__)) * "/DMRG/src")
-push!(LOAD_PATH, dirname(dirname(Base.@__DIR__)) * "/Hamiltonians/src")
+push!(LOAD_PATH, dirname(dirname(Base.@__DIR__)) * "/InfiniteDMRG/src")
+push!(LOAD_PATH, dirname(dirname(Base.@__DIR__)) * "/GeneralHamiltonians/src")
 push!(LOAD_PATH, dirname(dirname(Base.@__DIR__)) * "/QCMPO/src")
 
 using Test

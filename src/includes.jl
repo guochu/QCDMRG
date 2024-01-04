@@ -8,7 +8,7 @@ using SphericalTensors
 using SphericalTensors: SectorDict, FusionTreeDict, TensorKeyIterator
 const TK = SphericalTensors
 @reexport using DMRG
-using Hamiltonians
+using GeneralHamiltonians
 
 
 
