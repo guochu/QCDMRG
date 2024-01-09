@@ -75,3 +75,5 @@ end
 randomqcmps(::Type{T}, L::Int; kwargs...) where {T<:Number} = randommps(T, [_u1u1_pspace for i in 1:L]; kwargs...)
 randomqcmps(L::Int; kwargs...) = randomqcmps(Float64, L; kwargs...)
 
+prodqcmps(::Type{T}, physectors::Vector; kwargs...) where {T<:Number} = prodmps(T, [_u1u1_pspace for i in 1:length(physectors)], physectors; kwargs...)
+prodqcmps(physectors::Vector; kwargs...) = prodqcmps(Float64, physectors; kwargs...)

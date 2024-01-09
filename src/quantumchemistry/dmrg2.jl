@@ -12,7 +12,7 @@ function DMRG.leftsweep!(env::QCDMRGCache, alg::DMRG2)
 		heff = QCCenter(Opleft, Opright)
 		# initial guess
 		@tensor x[1,2; 4,5] := mpsA[1,2,3] * mpsB[3,4,5]
-		eigenvalue_0, eigenvec_0, info = DMRG.simple_lanczos_solver(heff, renormalizedoperator(x), "SR", alg.maxitereig, alg.toleig, verbosity=0)
+		eigenvalue_0, eigenvec_0 = _eigsolve(heff, renormalizedoperator(x), alg.maxitereig, alg.toleig)
 		eigenvec = TensorMap(blocks(eigenvec_0), codomain(x), domain(x))
 		u, s, v, err = tsvd!(eigenvec, trunc=alg.trunc)
 		# compute error
@@ -49,7 +49,7 @@ function DMRG.rightsweep!(env::QCDMRGCache, alg::DMRG2)
 		heff = QCCenter(Opleft, Opright)
 		# initial guess
 		@tensor x[1,2; 4,5] := mpsA[1,2,3] * mpsB[3,4,5]
-		eigenvalue_0, eigenvec_0, info = DMRG.simple_lanczos_solver(heff, renormalizedoperator(x), "SR", alg.maxitereig, alg.toleig, verbosity=0)
+		eigenvalue_0, eigenvec_0 = _eigsolve(heff, renormalizedoperator(x), alg.maxitereig, alg.toleig)
 		eigenvec = TensorMap(blocks(eigenvec_0), codomain(x), domain(x))
 		u, s, v, err = tsvd!(eigenvec, trunc=alg.trunc)
 		# compute error
@@ -81,4 +81,17 @@ function DMRG.sweep!(m::QCDMRGCache, alg::DMRG2)
 		println()
 	end
 	return Energies2[end], delta
+end
+
+function _eigsolve(h, init, maxiter, tol)
+	if dim(init) >= 20
+		eigenvalue_0, eigenvec_0, info = DMRG.simple_lanczos_solver(h, init, "SR", maxiter, tol, verbosity=0)
+	else
+		init = TensorMap(randn, scalartype(init), space(init))
+		eigenvalues, eigenvecs, infos = eigsolve(h, init, 1, :SR, Lanczos())
+		# (infos.converged >= 1) 
+		eigenvalue_0 = eigenvalues[1]
+		eigenvec_0 = eigenvecs[1]
+	end
+	return eigenvalue_0, eigenvec_0
 end

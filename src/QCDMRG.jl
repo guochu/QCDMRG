@@ -1,13 +1,13 @@
 module QCDMRG
 
 
-export MolecularHamiltonian, randomqcmps, u1u1_pspace
+export MolecularHamiltonian, randomqcmps, prodqcmps, u1u1_pspace
 
 
 using Reexport
 using LinearAlgebra: issymmetric
 using Base: @propagate_inbounds
-using Strided
+using Strided, KrylovKit
 using SphericalTensors
 using SphericalTensors: SectorDict, FusionTreeDict, TensorKeyIterator
 const TK = SphericalTensors

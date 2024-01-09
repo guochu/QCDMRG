@@ -3,7 +3,7 @@
 using Reexport
 using LinearAlgebra: issymmetric
 using Base: @propagate_inbounds
-using Strided
+using Strided, KrylovKit
 using SphericalTensors
 using SphericalTensors: SectorDict, FusionTreeDict, TensorKeyIterator
 const TK = SphericalTensors

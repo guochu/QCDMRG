@@ -1,6 +1,7 @@
-push!(LOAD_PATH, dirname(dirname(Base.@__DIR__)) * "/SphericalTensors/src")
+# push!(LOAD_PATH, dirname(dirname(Base.@__DIR__)) * "/SphericalTensors/src")
 push!(LOAD_PATH, dirname(dirname(Base.@__DIR__)) * "/DMRG/src")
-push!(LOAD_PATH, dirname(dirname(Base.@__DIR__)) * "/Hamiltonians/src")
+push!(LOAD_PATH, dirname(dirname(Base.@__DIR__)) * "/InfiniteDMRG/src")
+push!(LOAD_PATH, dirname(dirname(Base.@__DIR__)) * "/GeneralHamiltonians/src")
 
 include("../src/includes.jl")
 
@@ -41,7 +42,13 @@ function main(D)
 	println("E0 = ", E0)
 	ham = MolecularHamiltonian(0.5 * (t + t'), 0.5 * v)
 	L = length(ham)
-	mps = randomqcmps(L; D=D, right=Rep[U₁×U₁]((15, 15)=>1))
+	# mps = randomqcmps(L; D=D, right=Rep[U₁×U₁]((15, 15)=>1)) # random state
+	physectors = [(0,0) for i in 1:L]
+	for i in 1:15
+		physectors[i] = (1,1)
+	end
+	mps = prodqcmps(physectors) # HF initial state
+	canonicalize!(mps)
 	env = environments(ham, mps)
 
 	alg = DMRG2(verbosity=3, trunc=truncdimcutoff(D=D, ϵ=1.0e-10))
