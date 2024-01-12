@@ -1,13 +1,17 @@
-# push!(LOAD_PATH, dirname(dirname(Base.@__DIR__)) * "/SphericalTensors/src")
+push!(LOAD_PATH, dirname(dirname(Base.@__DIR__)) * "/SphericalTensors/src")
 push!(LOAD_PATH, dirname(dirname(Base.@__DIR__)) * "/DMRG/src")
 push!(LOAD_PATH, dirname(dirname(Base.@__DIR__)) * "/InfiniteDMRG/src")
 push!(LOAD_PATH, dirname(dirname(Base.@__DIR__)) * "/GeneralHamiltonians/src")
+# push!(LOAD_PATH, dirname(dirname(Base.@__DIR__)) * "/QCMPO/src")
+# using QCMPO
 
-include("../src/includes.jl")
+# include("../src/includes.jl")
+push!(LOAD_PATH, "../src")
 
 using JSON
 using SphericalTensors
-
+using GeneralHamiltonians
+using QCDMRG
 
 
 function read_data(pathname)
@@ -47,11 +51,30 @@ function main(D)
 	for i in 1:15
 		physectors[i] = (1,1)
 	end
-	mps = prodqcmps(physectors) # HF initial state
-	canonicalize!(mps)
+	trunc = truncdimcutoff(D=D, ϵ=1.0e-10, add_back=0)
+	# general mpo for the Hamiltonian
+	mps0 = prodqcmps(physectors) # HF initial state
+
+	# This is too slow
+	# # H * ψ
+	# @time h = hamiltonian(0.5 * (t + t'), 0.5*v, ChargeCharge())
+	# local mps
+	# @time for op in qterms(h)
+	# 	if @isdefined mps
+	# 		mps += op * mps0
+	# 	else
+	# 		mps = op * mps0
+	# 	end
+	# 	if (@isdefined mps) && (bond_dimension(mps) > D)
+	# 		canonicalize!(mps, alg=Orthogonalize(trunc=trunc, normalize=false))
+	# 	end
+	# end
+	mps = mps0
+
+	canonicalize!(mps, alg=Orthogonalize(trunc=trunc, normalize=true))
 	env = environments(ham, mps)
 
-	alg = DMRG2(verbosity=3, trunc=truncdimcutoff(D=D, ϵ=1.0e-10))
+	alg = DMRG2(verbosity=3, trunc=trunc)
 	eigvalues, times = do_dmrg(env, alg)
 
 	filename = "result/F2eS2_D$(D).json"

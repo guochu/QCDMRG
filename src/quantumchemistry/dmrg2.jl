@@ -23,7 +23,7 @@ function DMRG.leftsweep!(env::QCDMRGCache, alg::DMRG2)
 		# recalcute the energy
 		x2′ = renormalizedoperator(x′)
 		eigenvalue = dot(x2′, heff(x2′))
-		(alg.verbosity > 2) && println("E=$eigenvalue, δ=$(round(delta, digits=12)), χ=$(dim(space(s, 2))) after optimizing bond $bond")
+		(alg.verbosity > 2) && println("E₀=$(eigenvalue_0), E=$eigenvalue, δ=$(round(delta, digits=12)), χ=$(dim(space(s, 2))) after optimizing bond $bond")
 		
 		# update storages
 		env.mps[bond] = u
@@ -59,7 +59,7 @@ function DMRG.rightsweep!(env::QCDMRGCache, alg::DMRG2)
 		delta = max(delta,abs(1-abs(err_1)))
 		x2′ = renormalizedoperator(x′)
 		eigenvalue = dot(x2′, heff(x2′))
-		(alg.verbosity > 2) && println("E=$eigenvalue, δ=$(round(delta, digits=12)), χ=$(dim(space(s, 2))) after optimizing bond $bond")
+		(alg.verbosity > 2) && println("E₀=$(eigenvalue_0), E=$eigenvalue, δ=$(round(delta, digits=12)), χ=$(dim(space(s, 2))) after optimizing bond $bond")
 		# update storages
 		env.mps[bond] = u2
 		mpsB = v 
