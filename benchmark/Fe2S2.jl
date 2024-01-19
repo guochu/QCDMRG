@@ -5,13 +5,15 @@ push!(LOAD_PATH, dirname(dirname(Base.@__DIR__)) * "/GeneralHamiltonians/src")
 # push!(LOAD_PATH, dirname(dirname(Base.@__DIR__)) * "/QCMPO/src")
 # using QCMPO
 
-# include("../src/includes.jl")
-push!(LOAD_PATH, "../src")
+include("../src/includes.jl")
+
+# push!(LOAD_PATH, "../src")
+# using QCDMRG
 
 using JSON
 using SphericalTensors
 using GeneralHamiltonians
-using QCDMRG
+
 
 
 function read_data(pathname)
@@ -32,7 +34,7 @@ const H10_FCI_ENERGY = -4.7128481828029525
 function do_dmrg(env, alg)
 	_energies1 = Float64[]
 	times = Float64[]
-	for n in 1:5
+	for n in 1:20
 		t = @elapsed push!(_energies1, sweep!(env, alg)[1])
 		println("sweep $n takes $t seconds")
 		push!(times, t)
@@ -74,7 +76,7 @@ function main(D)
 	canonicalize!(mps, alg=Orthogonalize(trunc=trunc, normalize=true))
 	env = environments(ham, mps)
 
-	alg = DMRG2(verbosity=3, trunc=trunc)
+	alg = DMRG2(verbosity=3, trunc=trunc, toleig=1.0e-6, maxitereig=30)
 	eigvalues, times = do_dmrg(env, alg)
 
 	filename = "result/F2eS2_D$(D).json"

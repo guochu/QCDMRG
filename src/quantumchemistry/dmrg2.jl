@@ -12,10 +12,13 @@ function DMRG.leftsweep!(env::QCDMRGCache, alg::DMRG2)
 		heff = QCCenter(Opleft, Opright)
 		# initial guess
 		@tensor x[1,2; 4,5] := mpsA[1,2,3] * mpsB[3,4,5]
-		eigenvalue_0, eigenvec_0 = _eigsolve(heff, renormalizedoperator(x), alg.maxitereig, alg.toleig)
+		# eigenvalue_0, eigenvec_0 = _eigsolve(heff, renormalizedoperator(x), alg.maxitereig, alg.toleig)
+		eigenvalues_0, eigenvecs_0 = eigsolve(heff, renormalizedoperator(x), 1, :SR, Lanczos(;  maxiter=100, tol=alg.toleig, eager=true))
+		eigenvalue_0, eigenvec_0 = eigenvalues_0[1], eigenvecs_0[1]
 		eigenvec = TensorMap(blocks(eigenvec_0), codomain(x), domain(x))
 		u, s, v, err = tsvd!(eigenvec, trunc=alg.trunc)
 		# compute error
+		normalize!(s)
 		v2 = s * v
 		x′ = u * v2
 		err_1 = dot(x′, x)
@@ -49,10 +52,13 @@ function DMRG.rightsweep!(env::QCDMRGCache, alg::DMRG2)
 		heff = QCCenter(Opleft, Opright)
 		# initial guess
 		@tensor x[1,2; 4,5] := mpsA[1,2,3] * mpsB[3,4,5]
-		eigenvalue_0, eigenvec_0 = _eigsolve(heff, renormalizedoperator(x), alg.maxitereig, alg.toleig)
+		# eigenvalue_0, eigenvec_0 = _eigsolve(heff, renormalizedoperator(x), alg.maxitereig, alg.toleig)
+		eigenvalues_0, eigenvecs_0 = eigsolve(heff, renormalizedoperator(x), 1, :SR, Lanczos(; maxiter=100, tol=alg.toleig, eager=true))
+		eigenvalue_0, eigenvec_0 = eigenvalues_0[1], eigenvecs_0[1]
 		eigenvec = TensorMap(blocks(eigenvec_0), codomain(x), domain(x))
 		u, s, v, err = tsvd!(eigenvec, trunc=alg.trunc)
 		# compute error
+		normalize!(s)
 		u2 = u * s 
 		x′ = u2 * v
 		err_1 = dot(x′, x)
