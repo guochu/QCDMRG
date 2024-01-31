@@ -34,7 +34,7 @@ const H10_FCI_ENERGY = -4.7128481828029525
 function do_dmrg(env, alg)
 	_energies1 = Float64[]
 	times = Float64[]
-	for n in 1:20
+	for n in 1:50
 		t = @elapsed push!(_energies1, sweep!(env, alg)[1])
 		println("sweep $n takes $t seconds")
 		push!(times, t)
