@@ -5,7 +5,7 @@ println("------------------------------------")
 using JSON
 
 function do_dmrg(env)
-	alg = DMRG2()
+	alg = QCDMRG2(noise=1.0e-10)
 	_energies1 = Float64[]
 	for n in 1:5
 		append!(_energies1, sweep!(env, alg)[1])

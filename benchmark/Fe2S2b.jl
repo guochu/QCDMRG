@@ -31,10 +31,26 @@ read_data() = read_data("Fe2S2.json")
 
 const H10_FCI_ENERGY = -4.7128481828029525
 
-function do_dmrg(env, alg)
+function do_dmrg(env)
 	_energies1 = Float64[]
 	times = Float64[]
-	for n in 1:50
+	for n in 1:8
+		trunc = truncdimcutoff(D=250, ϵ=1.0e-10, add_back=0)
+		alg = QCDMRG2(verbosity=3, trunc=trunc, toleig=1.0e-6, maxitereig=30)
+		t = @elapsed push!(_energies1, sweep!(env, alg)[1])
+		println("sweep $n takes $t seconds")
+		push!(times, t)
+	end
+	for n in 9:16
+		trunc = truncdimcutoff(D=500, ϵ=1.0e-10, add_back=0)
+		alg = QCDMRG2(verbosity=3, trunc=trunc, toleig=1.0e-6, maxitereig=30)
+		t = @elapsed push!(_energies1, sweep!(env, alg)[1])
+		println("sweep $n takes $t seconds")
+		push!(times, t)
+	end
+	for n in 17:32
+		trunc = truncdimcutoff(D=1000, ϵ=1.0e-10, add_back=0)
+		alg = QCDMRG2(verbosity=3, trunc=trunc, toleig=1.0e-6, maxitereig=30)
 		t = @elapsed push!(_energies1, sweep!(env, alg)[1])
 		println("sweep $n takes $t seconds")
 		push!(times, t)
@@ -43,43 +59,28 @@ function do_dmrg(env, alg)
 end
 
 
-function main(D)
+function main()
 	E0, t, v = read_data()
 	println("E0 = ", E0)
 	ham = MolecularHamiltonian(0.5 * (t + t'), 0.5 * v)
 	L = length(ham)
-	# mps = randomqcmps(L; D=D, right=Rep[U₁×U₁]((15, 15)=>1)) # random state
-	physectors = [(0,0) for i in 1:L]
-	for i in 1:15
-		physectors[i] = (1,1)
-	end
-	trunc = truncdimcutoff(D=D, ϵ=1.0e-10, add_back=0)
-	# general mpo for the Hamiltonian
-	mps0 = prodqcmps(physectors) # HF initial state
+	mps = randomqcmps(L; D=50, right=Rep[U₁×U₁]((15, 15)=>1)) # random state
+	trunc = truncdimcutoff(D=50, ϵ=1.0e-10, add_back=0)
 
-	# This is too slow
-	# # H * ψ
-	# @time h = hamiltonian(0.5 * (t + t'), 0.5*v, ChargeCharge())
-	# local mps
-	# @time for op in qterms(h)
-	# 	if @isdefined mps
-	# 		mps += op * mps0
-	# 	else
-	# 		mps = op * mps0
-	# 	end
-	# 	if (@isdefined mps) && (bond_dimension(mps) > D)
-	# 		canonicalize!(mps, alg=Orthogonalize(trunc=trunc, normalize=false))
-	# 	end
+	# physectors = [(0,0) for i in 1:L]
+	# for i in 1:15
+	# 	physectors[i] = (1,1)
 	# end
-	mps = mps0
+	# # general mpo for the Hamiltonian
+	# mps0 = prodqcmps(physectors) # HF initial state
+	# mps = mps0
 
 	canonicalize!(mps, alg=Orthogonalize(trunc=trunc, normalize=true))
 	env = environments(ham, mps)
 
-	alg = QCDMRG2(verbosity=3, trunc=trunc, toleig=1.0e-6, maxitereig=30)
-	eigvalues, times = do_dmrg(env, alg)
+	eigvalues, times = do_dmrg(env)
 
-	filename = "result/F2eS2_D$(D).json"
+	filename = "result/F2eS2b.json"
 
 	eigvalues .+= E0
 

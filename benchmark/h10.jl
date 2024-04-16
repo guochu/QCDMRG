@@ -45,7 +45,7 @@ function main(D)
 	mps = randomqcmps(L; D=D, right=Rep[U₁×U₁]((5, 5)=>1))
 	env = environments(ham, mps)
 
-	alg = DMRG2(verbosity=2, trunc=truncdimcutoff(D=D, ϵ=1.0e-10))
+	alg = QCDMRG2(verbosity=2, trunc=truncdimcutoff(D=D, ϵ=1.0e-10))
 	eigvalues, times = do_dmrg(env, alg)
 
 	filename = "result/H10_D$(D).json"
@@ -67,7 +67,7 @@ function test_conversion(D)
 	mps = randomqcmps(L; D=D, right=Rep[U₁×U₁]((5, 5)=>1))
 	env = environments(ham, mps)
 
-	alg = DMRG2(verbosity=2, trunc=truncdimcutoff(D=D, ϵ=1.0e-10))
+	alg = QCDMRG2(verbosity=2, trunc=truncdimcutoff(D=D, ϵ=1.0e-10))
 	eigvalues, times = do_dmrg(env, alg)
 
 	mps = env.mps

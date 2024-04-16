@@ -1,4 +1,32 @@
-function DMRG.leftsweep!(env::QCDMRGCache, alg::DMRG2)
+struct QCDMRG2 <: DMRGAlgorithm
+	maxiter::Int 
+	tol::Float64 
+	maxitereig::Int 
+	toleig::Float64 
+	noise::Float64
+	verbosity::Int 
+	trunc::TruncationDimCutoff 
+end
+
+QCDMRG2(trunc::TruncationDimCutoff; maxiter::Int=100, tol::Real=1.0e-14, maxitereig::Int=10, toleig::Real=1.0e-10, noise::Real=0, verbosity::Int=1) = QCDMRG2(
+		maxiter, convert(Float64, tol), maxitereig, convert(Float64, toleig), convert(Float64, noise), verbosity, trunc)
+QCDMRG2(; trunc::TruncationDimCutoff=DMRG.DefaultTruncation, kwargs...) = QCDMRG2(trunc; kwargs...)
+
+Base.similar(x::QCDMRG2; trunc::TruncationDimCutoff=x.trunc, maxiter::Int=x.maxiter, tol::Float64=x.tol, maxitereig::Int=x.maxitereig, 
+				toleig::Float64=x.toleig, verbosity::Int=x.verbosity) = QCDMRG2(trunc=trunc, maxiter=maxiter, tol=tol, maxitereig=maxitereig, 
+				toleig=toleig, verbosity=verbosity)
+
+function Base.getproperty(x::QCDMRG2, s::Symbol)
+	if s == :D
+		return x.trunc.D
+	elseif s == :ϵ
+		return x.trunc.ϵ
+	else
+		getfield(x, s)
+	end
+end
+
+function DMRG.leftsweep!(env::QCDMRGCache, alg::QCDMRG2)
 	energies = Float64[]
 	delta = 0.
 	for bond in 1:length(env)-2
@@ -16,6 +44,11 @@ function DMRG.leftsweep!(env::QCDMRGCache, alg::DMRG2)
 		eigenvalues_0, eigenvecs_0 = eigsolve(heff, renormalizedoperator(x), 1, :SR, Lanczos(;  maxiter=100, tol=alg.toleig, eager=true))
 		eigenvalue_0, eigenvec_0 = eigenvalues_0[1], eigenvecs_0[1]
 		eigenvec = TensorMap(blocks(eigenvec_0), codomain(x), domain(x))
+		# add some noise
+		if alg.noise > 0
+			noise_vec =  TensorMap(randn, scalartype(eigenvec), space(eigenvec))
+			axpy!(alg.noise, noise_vec, eigenvec)
+		end
 		u, s, v, err = tsvd!(eigenvec, trunc=alg.trunc)
 		# compute error
 		normalize!(s)
@@ -38,7 +71,7 @@ function DMRG.leftsweep!(env::QCDMRGCache, alg::DMRG2)
 	return energies, delta
 end
 
-function DMRG.rightsweep!(env::QCDMRGCache, alg::DMRG2)
+function DMRG.rightsweep!(env::QCDMRGCache, alg::QCDMRG2)
 	energies = Float64[]
 	delta = 0.
 	for bond in length(env)-1:-1:1
@@ -56,6 +89,10 @@ function DMRG.rightsweep!(env::QCDMRGCache, alg::DMRG2)
 		eigenvalues_0, eigenvecs_0 = eigsolve(heff, renormalizedoperator(x), 1, :SR, Lanczos(; maxiter=100, tol=alg.toleig, eager=true))
 		eigenvalue_0, eigenvec_0 = eigenvalues_0[1], eigenvecs_0[1]
 		eigenvec = TensorMap(blocks(eigenvec_0), codomain(x), domain(x))
+		if alg.noise > 0
+			noise_vec =  TensorMap(randn, scalartype(eigenvec), space(eigenvec))
+			axpy!(alg.noise, noise_vec, eigenvec)
+		end
 		u, s, v, err = tsvd!(eigenvec, trunc=alg.trunc)
 		# compute error
 		normalize!(s)
@@ -78,7 +115,7 @@ function DMRG.rightsweep!(env::QCDMRGCache, alg::DMRG2)
 	return energies, delta	
 end
 
-function DMRG.sweep!(m::QCDMRGCache, alg::DMRG2)
+function DMRG.sweep!(m::QCDMRGCache, alg::QCDMRG2)
 	Energies1, delta1 = leftsweep!(m, alg)
 	Energies2, delta2 = rightsweep!(m, alg)
 	delta = max(delta1, delta2)
