@@ -267,14 +267,15 @@ function renormalizestorageright(storage_old::QCSiteStorages, ham::MolecularHami
 					for (idxs, orbs) in enumerate(sc)
 						op_s = sqC(sc, idxs, false)
 						coef = h2e[orbp, orbq, orbr, orbs]
-						if !iszero(coef)
+						if (!iszero(coef)) && (dim(Tdagaold[idxq]) != 0)
 							tmp = totensormap(-coef * op_s * sgnC(sc), side=:R)
 							if isassigned(BQnew, orbp, orbr)
 								# BQnew[orbp, orbr] = renormalizeright!(BQnew[orbp, orbr], phy_dagger(Tdagaold[idxq]), tmp)
 								BQnew[orbp, orbr] = renormalizeright!(BQnew[orbp, orbr], Tdagaold[idxq], tmp, dagger=true)
 							else
-								# BQnew[orbp, orbr] = renormalizeright(phy_dagger(Tdagaold[idxq]), tmp)
-								BQnew[orbp, orbr] = renormalizeright(Tdagaold[idxq], tmp, dagger=true)
+								BQnew[orbp, orbr] = renormalizeright(phy_dagger(Tdagaold[idxq]), tmp)
+								###*** this is a bug when dagger = true?
+								# BQnew[orbp, orbr] = renormalizeright(Tdagaold[idxq], tmp, dagger=true)
 							end
 						end
 					end
@@ -341,7 +342,7 @@ function renormalizestorageright(storage_old::QCSiteStorages, ham::MolecularHami
 					end
 				end
 			end
-			if !iszero(op_rs)
+			if (!iszero(op_rs)) && (dim(Tdagaold[idxq]) != 0)
 				if isassigned(aTnew, idxp)
 					# aTnew[idxp] = renormalizeright!(aTnew[idxp], phy_dagger(Tdagaold[idxq]), totensormap(op_rs, side=:R))
 					aTnew[idxp] = renormalizeright!(aTnew[idxp], Tdagaold[idxq], totensormap(op_rs, side=:R), dagger=true)
