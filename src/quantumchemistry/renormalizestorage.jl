@@ -786,7 +786,7 @@ function renormalizestorageleft(storage_old::QCSiteStorages, ham::MolecularHamil
 					Tanew[idxs] = renormalizeleft_odagger!(Tanew[idxs], adagTold[idxr], totensormap(op_qp, side=:L))
 				else
 					# Tanew[idxs] = tmp2
-					Tanew[idxs] = renormalizeleft_odagger!(adagTold[idxr], totensormap(op_qp, side=:L))
+					Tanew[idxs] = renormalizeleft_odagger(adagTold[idxr], totensormap(op_qp, side=:L))
 				end
 			end
 		end
